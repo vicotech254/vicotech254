@@ -1,0 +1,2396 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>POS with Credit Management System</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+<link href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet"/><script src="https://code.jquery.com/jquery-3.7.0.min.js"></script><script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script><script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script><script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script><link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet"/><script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script><script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script></head>
+<body class="bg-gray-100 font-sans">
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+    </script>
+<!-- Login Page -->
+<div class="container mx-auto p-4 flex items-center justify-center h-screen" id="loginPage">
+<div class="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+<div class="flex justify-center mb-4">
+<div class="w-[150px] h-[150px] rounded-full overflow-hidden flex items-center justify-center bg-blue-500">
+<img alt="Profile Avatar" class="w-full h-full object-cover hidden" id="loginAvatarImage" src=""/>
+<span class="text-white font-bold text-4xl" id="loginAvatarInitial">?</span>
+</div>
+</div>
+<h2 class="text-2xl font-semibold mb-4 text-center">POS with Credit Mgmt System<br/>Login</h2>
+<form class="space-y-4" id="loginForm">
+<div>
+<label class="block text-sm font-medium">Username</label>
+<input class="w-full p-2 border rounded" id="username" required="" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-medium">Password</label>
+<input class="w-full p-2 border rounded" id="password" required="" type="password"/>
+</div>
+<button class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" type="submit">Login</button>
+<p class="text-center">
+<a class="text-blue-500 hover:underline" href="#" onclick="showForgotPassword()">Forgot Password?</a>
+</p>
+</form>
+</div>
+</div>
+<!-- Forgot Password Page -->
+<div class="container mx-auto p-4 flex items-center justify-center h-screen hidden" id="forgotPasswordPage">
+<div class="bg-white p-6 rounded-lg shadow-md w-full max-w-md">
+<h2 class="text-2xl font-semibold mb-4 text-center">Forgot Password</h2>
+<form class="space-y-4" id="forgotPasswordForm">
+<div>
+<label class="block text-sm font-medium">Email</label>
+<input class="w-full p-2 border rounded" id="resetEmail" required="" type="email"/>
+</div>
+<button class="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" type="submit">Send Reset Link</button>
+<p class="text-center">
+<a class="text-blue-500 hover:underline" href="#" onclick="showLogin()">Back to Login</a>
+</p>
+</form>
+</div>
+</div>
+<!-- Main App (Hidden Initially) -->
+<div class="container mx-auto p-4 hidden flex flex-col" id="mainApp">
+<!-- Header Section -->
+<header class="sticky top-0 z-10 bg-white bg-opacity-30 backdrop-blur-md p-4 rounded-lg shadow-md mb-4 flex items-center justify-between">
+<!-- Name and Menu Tab -->
+<div class="flex items-center space-x-4">
+<h1 class="text-xl font-bold text-gray-800">POS System</h1>
+<button class="p-2 hover:bg-gray-200 rounded">
+<svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+<!-- Search Tab -->
+<div class="flex items-center bg-white rounded-lg shadow-sm px-3 py-2">
+<svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<input class="bg-transparent outline-none text-gray-600" placeholder="Search..." type="text"/>
+</div>
+<!-- Icon Tabs -->
+<div class="flex items-center space-x-4">
+<!-- Notification Icon -->
+<button class="p-2 hover:bg-gray-200 rounded">
+<svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<!-- Settings Icon -->
+<button class="p-2 hover:bg-gray-200 rounded">
+<svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<!-- Help Icon -->
+<button class="p-2 hover:bg-gray-200 rounded">
+<svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+<!-- Profile Tab -->
+<div class="flex items-center">
+<button class="flex items-center space-x-2" onclick="showSection('settings'); showSettingsSection('profile')">
+<div class="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-blue-500">
+<img alt="Profile Avatar" class="w-full h-full object-cover hidden" id="headerAvatarImage" src="https://via.placeholder.com/40"/>
+<span class="text-white font-bold text-xl" id="headerAvatarInitial"></span>
+</div>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<div class="flex flex-1">
+<!-- Sidebar -->
+<div class="w-64 bg-white p-4 rounded-lg shadow-md mr-4">
+<h1 class="text-xl font-bold mb-6">POS System</h1>
+<!-- Profile Section -->
+<div class="mb-6 flex items-center">
+<div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+<span id="profileInitial"></span>
+</div>
+<div class="ml-3">
+<p class="font-medium" id="profileUsername"></p>
+<p class="text-sm text-gray-600" id="profileEmail"></p>
+</div>
+</div>
+<nav class="space-y-2">
+<button class="w-full text-left px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onclick="showSection('dashboard')">Dashboard</button>
+<button class="w-full text-left px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600" onclick="showSection('pos')">POS</button>
+<!-- Clients Dropdown -->
+<div class="space-y-1">
+<button class="w-full text-left px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onclick="toggleDropdown('clientsDropdown')">
+                     Clients
+                    </button>
+<div class="hidden pl-4 space-y-1" id="clientsDropdown">
+<button class="w-full text-left px-4 py-2 bg-blue-400 text-white rounded hover:bg-blue-500" onclick="showSection('addClient')">Add Client</button>
+<button class="w-full text-left px-4 py-2 bg-blue-400 text-white rounded hover:bg-blue-500" onclick="showSection('viewClients')">View Clients</button>
+</div>
+</div>
+<button class="w-full text-left px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onclick="showSection('addStock')">Stock Management</button>
+<button class="w-full text-left px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onclick="showSection('credit')">Credit Management</button>
+<button class="w-full text-left px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600" onclick="showSection('reports')">Reports</button>
+<button class="w-full text-left px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600" onclick="showSection('qrGenerator')">Generate QR Codes</button>
+<button class="w-full text-left px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600" onclick="showSection('settings')">Settings</button>
+<button class="w-full text-left px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" onclick="logout()">Logout</button>
+</nav>
+</div>
+<!-- Content Area -->
+<div class="flex-1">
+<!-- Dashboard Section -->
+<div class="section bg-white p-6 rounded-lg shadow-md mb-6" id="dashboard">
+<h2 class="text-2xl font-semibold mb-4">Dashboard</h2>
+<div class="flex flex-col md:flex-row items-start md:items-center gap-4 mb-4">
+<div>
+<label class="text-sm font-medium">Start Date</label>
+<input class="border rounded p-2" id="dashboardStartDate" type="date"/>
+</div>
+<div>
+<label class="text-sm font-medium">End Date</label>
+<input class="border rounded p-2" id="dashboardEndDate" type="date"/>
+</div>
+<button class="mt-2 md:mt-6 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onclick="updateDashboard()">Filter</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+<div class="bg-purple-100 p-4 rounded-lg">
+<h3 class="text-lg font-medium">Todays Total Sales </h3>
+<p class="text-2xl font-bold" id="totalSalesToday">Ksh0.00</p>
+</div>
+<div class="bg-blue-100 p-4 rounded-lg">
+<h3 class="text-lg font-medium">Total Credit Owed</h3>
+<p class="text-2xl font-bold" id="totalCreditOwed">Ksh0.00</p>
+</div>
+<div class="bg-green-100 p-4 rounded-lg">
+<h3 class="text-lg font-medium">Total Clients</h3>
+<p class="text-2xl font-bold" id="totalClients">0</p>
+</div>
+<div class="bg-yellow-100 p-4 rounded-lg">
+<h3 class="text-lg font-medium">Total Stock Value</h3>
+<p class="text-2xl font-bold" id="totalStockValue">Ksh0.00</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<!-- Updated: Changed chart title -->
+<h3 class="text-lg font-medium mb-2">Credit Owed vs Stock Value vs Cash Sale</h3>
+<canvas class="w-full" id="creditStockChart"></canvas>
+</div>
+<!--Best-Selling Items Column-->
+<div>
+<h3 class="text-lg font-medium mb-2">Top 5 Best-Selling Items</h3>
+<table class="w-full border">
+<thead>
+<tr class="bg-gray-200">
+<th class="p-2">Item</th>
+<th class="p-2">Quantity Sold</th>
+</tr>
+</thead>
+<tbody id="topSellingItems"></tbody>
+</table>
+<h3 class="text-lg font-medium mb-2">Top 5 Clients with Credit</h3>
+<table class="w-full border">
+<thead>
+<tr class="bg-gray-200">
+<th class="p-2">Client Name</th>
+<th class="p-2">Credit Owed</th>
+</tr>
+</thead>
+<tbody id="topCreditClients"></tbody>
+</table>
+<h3 class="text-lg font-medium mt-4 mb-2">Recent 5 Clients with Credit</h3>
+<table class="w-full border">
+<thead>
+<tr class="bg-gray-200">
+<th class="p-2">Client Name</th>
+<th class="p-2">Credit Owed</th>
+<th class="p-2">Last Purchase</th>
+</tr>
+</thead>
+<tbody id="recentCreditClients"></tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Add Client Section -->
+<div class="section hidden bg-white p-6 rounded-lg shadow-md mb-6" id="addClient">
+<h2 class="text-2xl font-semibold mb-4">Add Client</h2>
+<form class="space-y-4" id="clientForm">
+<div>
+<label class="block text-sm font-medium">Client Name</label>
+<input class="w-full p-2 border rounded" id="clientName" required="" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-medium">Email</label>
+<input class="w-full p-2 border rounded" id="clientEmail" type="email"/>
+</div>
+<div>
+<label class="block text-sm font-medium">Phone Number</label>
+<input class="w-full p-2 border rounded" id="clientPhone" type="tel"/>
+</div>
+<div>
+<label class="block text-sm font-medium">Credit Limit (Ksh)</label>
+<input class="w-full p-2 border rounded" id="clientCreditLimit" min="0" step="0.01" type="number"/>
+</div>
+<button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" type="submit">Add Client</button>
+</form>
+</div>
+<!-- View Clients Section -->
+<div class="section hidden bg-white p-6 rounded-lg shadow-md mb-6" id="viewClients">
+<h2 class="text-2xl font-semibold mb-4">View Clients</h2>
+<input class="mb-4 w-full p-2 border rounded" id="clientSearch" oninput="updateViewClientsTable()" placeholder="Search clients..." type="text"/>
+<table class="w-full border">
+<thead>
+<tr class="bg-gray-200">
+<th class="p-2">Name</th>
+<th class="p-2">Email</th>
+<th class="p-2">Phone</th>
+<th class="p-2">Credit Limit</th>
+<th class="p-2">Credit Owed</th>
+<th class="p-2">Actions</th>
+</tr>
+</thead>
+<tbody id="viewClientsTable"></tbody>
+</table>
+</div>
+<!-- Stock Management Section -->
+<div class="section hidden bg-white p-6 rounded-lg shadow-md mb-6" id="addStock">
+<h2 class="text-2xl font-semibold mb-4">Stock Management</h2>
+<div class="flex space-x-4 mb-6">
+<button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onclick="showStockSection('addStockSub')">Add Stock</button>
+<button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onclick="showStockSection('viewStockSub')">View Stock</button>
+<button class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" onclick="showStockSection('adjustStockSub')">Adjust Stock</button>
+</div>
+<!-- Add Stock Subsection -->
+<div class="stock-section" id="addStockSub">
+<h3 class="text-lg font-medium mb-4">Add Stock</h3>
+<form class="space-y-4" id="stockForm">
+<div>
+<label class="block text-sm font-medium">Item Name &amp; Serial Number</label>
+<input class="w-full p-2 border rounded" id="itemName" required="" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-medium">Buying Price (Ksh)</label>
+<input class="w-full p-2 border rounded" id="itemPrice" min="0" required="" step="0.01" type="number"/>
+</div>
+<div>
+<label class="block text-sm font-medium">Selling Price (Ksh)</label>
+<input class="w-full p-2 border rounded" id="itemSellingPrice" min="0" required="" step="0.01" type="number"/>
+</div>
+<div>
+<label class="block text-sm font-medium">Quantity</label>
+<input class="w-full p-2 border rounded" id="itemQuantity" min="0" required="" type="number"/>
+</div>
+<button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" type="submit">Add Stock</button>
+</form>
+</div>
+<!-- View Stock Subsection -->
+<div class="stock-section hidden" id="viewStockSub">
+<h3 class="text-lg font-medium mb-4">View Stock</h3>
+<table class="w-full border">
+<thead>
+<tr class="bg-gray-200">
+<th class="p-2">Item Name</th>
+<th class="p-2">Quantity</th>
+<th class="p-2">Buying Price</th>
+<th class="p-2">Selling Price</th>
+</tr>
+</thead>
+<tbody id="viewStockTable"></tbody>
+</table>
+</div>
+<!-- Adjust Stock Subsection -->
+<div class="stock-section hidden" id="adjustStockSub">
+<h3 class="text-lg font-medium mb-4">Adjust Stock</h3>
+<form class="space-y-4" id="adjustStockForm">
+<div>
+<label class="block text-sm font-medium">Select Item</label>
+<select class="w-full p-2 border rounded" id="adjustStockItem" required=""></select>
+</div>
+<div>
+<label class="block text-sm font-medium">Adjustment Type</label>
+<!-- Updated: Added onchange event to trigger toggleAdjustFields() -->
+<select class="w-full p-2 border rounded" id="adjustmentType" onchange="toggleAdjustFields()" required="">
+<option value="add">Add</option>
+<option value="remove">Remove</option>
+<option value="edit">Edit Prices</option>
+</select>
+</div>
+<!-- Updated: Wrapped fields in divs with IDs for easier manipulation -->
+<div id="quantityField">
+<label class="block text-sm font-medium">Quantity</label>
+<input class="w-full p-2 border rounded" id="adjustQuantity" min="1" type="number"/>
+</div>
+<div id="buyingPriceField">
+<label class="block text-sm font-medium">New Buying Price (Ksh)</label>
+<input class="w-full p-2 border rounded" id="adjustBuyingPrice" min="0" step="0.01" type="number"/>
+</div>
+<div id="sellingPriceField">
+<label class="block text-sm font-medium">New Selling Price (Ksh)</label>
+<input class="w-full p-2 border rounded" id="adjustSellingPrice" min="0" step="0.01" type="number"/>
+</div>
+<button class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600" type="submit">Adjust Stock</button>
+</form>
+</div>
+</div>
+<!-- POS Section -->
+<div class="section hidden bg-white p-6 rounded-lg shadow-md mb-6" id="pos">
+<h2 class="text-2xl font-semibold mb-4">Point of Sale (POS)</h2>
+<!-- Updated POS UI to match layout from po.jpg -->
+<!-- The following section modifies the POS UI directly -->
+<div class="bg-white p-6 rounded-lg shadow-md mb-6" id="enhancedPOS">
+<div class="flex items-center justify-between mb-4">
+<div class="text-xl font-semibold">Point Of Sale System</div>
+<div class="text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded">
+<span id="currentDate"></span>
+</div>
+</div>
+<div class="flex items-center gap-4 mb-4">
+<div class="relative w-1/2">
+<input class="p-2 border rounded w-full" id="clientLiveSearch" oninput="liveSearchClients(this.value)" placeholder="Search Client by Name / Email / Phone" type="text"/>
+<ul class="absolute w-full bg-white border rounded shadow-md max-h-40 overflow-y-auto hidden" id="clientSuggestions"></ul>
+</div>
+<div class="relative flex-grow">
+<input class="p-2 border rounded w-full" id="productLiveSearch" oninput="liveSearchItems(this.value)" placeholder="Enter Product name / SKU / Scan bar code" type="text"/>
+<ul class="absolute w-full bg-white border rounded shadow-md max-h-40 overflow-y-auto hidden" id="productSuggestions"></ul>
+</div>
+</div>
+<!-- Cart Table -->
+<div class="overflow-auto border rounded mb-4">
+<table class="min-w-full text-sm text-left">
+<thead class="bg-gray-100">
+<tr>
+<th class="p-2">Product</th>
+<th class="p-2">Quantity</th>
+<th class="p-2">Price inc. tax</th>
+<th class="p-2">Subtotal</th>
+<th class="p-2">Discount</th>
+<th class="p-2">Action</th>
+</tr>
+</thead>
+<tbody id="cartTableBody">
+<!-- Items will be appended here -->
+</tbody>
+</table>
+</div>
+<!-- Totals Section -->
+<div class="flex justify-between items-center mb-4">
+<div>
+<div>Items: <span id="itemsCount">0.00</span></div>
+<div>Total: <span id="totalAmount">0.00</span></div>
+<div>Shipping(+): <input class="p-1 border rounded w-24" id="shippingCost" type="number" value="0.00"/></div>
+</div>
+<div class="text-xl font-bold">Total Payable: <span id="totalPayable">0.00</span></div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-wrap gap-2 justify-center mt-4">
+<button class="bg-green-500 text-white px-4 py-2 rounded" onclick="openPaymentPopup('Mpesa')">Mpesa</button>
+<button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="openPaymentPopup('Cash')">Cash</button>
+<button class="bg-pink-600 text-white px-4 py-2 rounded" onclick="openPaymentPopup('credit')">Credit Sale</button>
+</div>
+</div>
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" id="paymentPopup">
+<div class="bg-white p-6 rounded shadow-lg w-96">
+<h2 class="text-xl font-semibold mb-4">Complete Payment</h2>
+<p>Amount to Pay: <span class="font-bold" id="popupAmount">Ksh 0.00</span></p>
+<div class="mt-6 flex justify-between">
+<button class="px-4 py-2 bg-gray-500 text-white rounded" onclick="closePaymentPopup()">Cancel</button>
+<button class="px-4 py-2 bg-green-600 text-white rounded" onclick="confirmPayment()">Confirm</button>
+</div>
+</div>
+</div>
+<!-- JS to update date dynamically -->
+<script>
+    document.getElementById("currentDate").textContent = new Date().toLocaleString();
+</script>
+</div>
+<!-- Credit Management Section -->
+<div class="section hidden bg-white p-6 rounded-lg shadow-md mb-6" id="credit">
+<h2 class="text-2xl font-semibold mb-4">Credit Management</h2>
+<div>
+<div>
+<label class="block text-sm font-medium">Search Client</label>
+<input class="w-full p-2 border rounded mb-2" id="clientSearchInput" oninput="filterClientList()" placeholder="Type to search..." type="text"/>
+<ul class="border rounded w-full max-h-40 overflow-y-auto bg-white shadow-md hidden" id="clientResults"></ul>
+<!-- Hidden select used internally -->
+<select class="hidden" id="creditClient" onchange="loadClientCreditDetails()"></select>
+</div>
+<script>
+// Toggle adjust stock fields based on adjustment type
+
+function liveSearchClients(query) {
+  const suggestions = document.getElementById("clientSuggestions");
+  suggestions.innerHTML = "";
+  if (!query) return suggestions.classList.add("hidden");
+
+  const matches = clients.filter(c => 
+    c.name.toLowerCase().includes(query.toLowerCase()) ||
+    (c.email && c.email.toLowerCase().includes(query.toLowerCase())) ||
+    (c.phone && c.phone.includes(query))
+  );
+
+  matches.forEach(client => {
+    const li = document.createElement("li");
+    li.textContent = `${client.name} (${client.phone || 'No phone'})`;
+    li.className = "px-4 py-2 hover:bg-blue-100 cursor-pointer";
+    li.onclick = () => {
+      document.getElementById("clientLiveSearch").value = client.name;
+      suggestions.classList.add("hidden");
+      currentClientId = client.id;
+    };
+    suggestions.appendChild(li);
+  });
+  suggestions.classList.remove("hidden");
+}
+
+function liveSearchItems(query) {
+  const suggestions = document.getElementById("productSuggestions");
+  suggestions.innerHTML = "";
+  if (!query) return suggestions.classList.add("hidden");
+
+  const matches = stock.filter(i => 
+    i.name.toLowerCase().includes(query.toLowerCase()) || 
+    (i.sku && i.sku.toLowerCase().includes(query.toLowerCase()))
+  );
+
+  matches.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = `${item.name} - Ksh${item.sellingPrice.toFixed(2)}`;
+    li.className = "px-4 py-2 hover:bg-green-100 cursor-pointer";
+    li.onclick = () => {
+      document.getElementById("productLiveSearch").value = "";
+      suggestions.classList.add("hidden");
+      addItemToCart(item);
+    };
+    suggestions.appendChild(li);
+  });
+  suggestions.classList.remove("hidden");
+}
+
+function addItemToCart(item) {
+  const cartBody = document.getElementById("cartTableBody");
+  const existingRow = Array.from(cartBody.rows).find(row => row.dataset.itemId == item.id);
+
+  if (existingRow) {
+    const qtyCell = existingRow.querySelector(".cart-qty");
+    const qty = parseInt(qtyCell.textContent) + 1;
+    qtyCell.textContent = qty;
+  } else {
+    const row = cartBody.insertRow();
+    row.dataset.itemId = item.id;
+    row.innerHTML = `
+      <td class="p-2">${item.name}</td>
+      <td class="p-2 cart-qty">1</td>
+      <td class="p-2">Ksh${item.sellingPrice.toFixed(2)}</td>
+      <td class="p-2 cart-subtotal">Ksh${item.sellingPrice.toFixed(2)}</td>
+      <td class="p-2">
+        <input type="number" class="cart-discount p-1 border rounded w-20" min="0" value="0" onchange="updateCartSummary()" />
+      </td>
+      <td class="p-2">
+        <button onclick="removeCartItem(this)" class="text-red-500">Remove</button>
+      </td>
+    `;
+  }
+
+  updateCartSummary();
+}
+
+
+// Ensure updateCartSummary includes shipping in Total Payable and sets popupAmount correctly
+function updateCartSummary() {
+  const cartBody = document.getElementById("cartTableBody");
+  let itemCount = 0, total = 0, totalDiscount = 0;
+
+  Array.from(cartBody.rows).forEach(row => {
+    const qty = parseInt(row.querySelector(".cart-qty").textContent);
+    const discount = parseFloat(row.querySelector(".cart-discount").value) || 0;
+    const price = parseFloat(row.querySelector("td:nth-child(3)").textContent.replace("Ksh", ""));
+    const subtotal = (price * qty) - discount;
+
+    row.querySelector(".cart-subtotal").textContent = `Ksh${subtotal.toFixed(2)}`;
+
+    itemCount += qty;
+    total += subtotal;
+    totalDiscount += discount;
+  });
+
+  document.getElementById("itemsCount").textContent = itemCount.toFixed(2);
+  document.getElementById("totalAmount").textContent = `Ksh${total.toFixed(2)}`;
+
+  const shipping = parseFloat(document.getElementById("shippingCost").value) || 0;
+  const totalPayable = total + shipping;
+
+  document.getElementById("totalPayable").textContent = `Ksh${totalPayable.toFixed(2)}`;
+  document.getElementById("popupAmount").textContent = `Ksh${totalPayable.toFixed(2)}`;
+}
+
+
+
+
+function toggleAdjustFields() {
+    const adjustmentType = document.getElementById('adjustmentType').value;
+    const quantityField = document.getElementById('quantityField');
+    const buyingPriceField = document.getElementById('buyingPriceField');
+    const sellingPriceField = document.getElementById('sellingPriceField');
+
+    if (adjustmentType === 'remove') {
+        quantityField.classList.remove('hidden');
+        buyingPriceField.classList.add('hidden');
+        sellingPriceField.classList.add('hidden');
+        document.getElementById('adjustQuantity').required = true;
+        document.getElementById('adjustBuyingPrice').required = false;
+        document.getElementById('adjustSellingPrice').required = false;
+    } else if (adjustmentType === 'edit') {
+        quantityField.classList.add('hidden');
+        buyingPriceField.classList.remove('hidden');
+        sellingPriceField.classList.remove('hidden');
+        document.getElementById('adjustQuantity').required = false;
+        document.getElementById('adjustBuyingPrice').required = false;
+        document.getElementById('adjustSellingPrice').required = false;
+    } else { // 'add'
+        quantityField.classList.remove('hidden');
+        buyingPriceField.classList.remove('hidden');
+        sellingPriceField.classList.remove('hidden');
+        document.getElementById('adjustQuantity').required = true;
+        document.getElementById('adjustBuyingPrice').required = false;
+        document.getElementById('adjustSellingPrice').required = false;
+    }
+}
+
+
+
+function filterClientList() {
+  const input = document.getElementById("clientSearchInput").value.toLowerCase();
+  const results = document.getElementById("clientResults");
+  results.innerHTML = "";
+  if (!input) {
+    results.classList.add("hidden");
+    return;
+  }
+
+  const filtered = clients.filter(c =>
+    c.name.toLowerCase().includes(input) ||
+    (c.email || "").toLowerCase().includes(input) ||
+    (c.phone || "").toLowerCase().includes(input)
+  );
+
+  filtered.forEach(client => {
+    const li = document.createElement("li");
+    li.className = "px-4 py-2 hover:bg-blue-100 cursor-pointer";
+    li.textContent = `${client.name} (${client.phone || "No Phone"})`;
+    li.onclick = () => selectClient(client.id);
+    results.appendChild(li);
+  });
+
+  results.classList.remove("hidden");
+}
+
+function selectClient(clientId) {
+  const client = clients.find(c => c.id === clientId);
+  document.getElementById("clientSearchInput").value = client.name;
+  document.getElementById("clientResults").classList.add("hidden");
+  document.getElementById("creditClient").value = clientId;
+  loadClientCreditDetails();
+}
+
+function removeCartItem(button) {
+  const row = button.closest("tr");
+  if (row) {
+    row.remove();
+    updateCartSummary();
+  }
+}
+</script>
+</div>
+<div class="space-y-4" id="creditDetails">
+<h3 class="text-lg font-medium">Credit Details</h3>
+<p><strong>Credit Owed:</strong> <span id="clientCreditOwed">Ksh0.00</span></p>
+<button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onclick="sendCreditItemsNotification()">Send Credit Items List</button>
+<h3 class="text-lg font-medium">Items Taken on Credit</h3>
+<table class="w-full border">
+<thead>
+<tr class="bg-gray-200">
+<th class="p-2">Item Name</th>
+<th class="p-2">Quantity</th>
+<th class="p-2">Price</th>
+<th class="p-2">Total</th>
+<th class="p-2">Date</th>
+</tr>
+</thead>
+<tbody id="creditItemsTable"></tbody>
+</table>
+<h3 class="text-lg font-medium">Payment History</h3>
+<table class="w-full border">
+<thead>
+<tr class="bg-gray-200">
+<th class="p-2">Amount Paid</th>
+<th class="p-2">Date</th>
+</tr>
+</thead>
+<tbody id="paymentHistoryTable"></tbody>
+</table>
+<div>
+<h3 class="text-lg font-medium">Record Payment</h3>
+<form class="space-y-4" id="paymentForm">
+<div>
+<label class="block text-sm font-medium">Payment Amount (Ksh)</label>
+<input class="w-full p-2 border rounded" id="paymentAmount" min="0" required="" step="0.01" type="number"/>
+</div>
+<button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" type="submit">Record Payment</button>
+</form>
+</div>
+</div>
+</div>
+<!-- Reports Section -->
+<div class="section hidden bg-white p-6 rounded-lg shadow-md mb-6" id="reports">
+<h2 class="text-2xl font-semibold mb-4">Reports</h2>
+<!-- Tab Navigation -->
+<ul class="flex space-x-4 mb-4 border-b pb-2">
+<li>
+<button class="tab-btn flex items-center space-x-2 text-blue-600 hover:underline transition-all duration-300" id="tab-sales" onclick="showReportTab('sales')">
+<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M3 10h4l3 8 4-16 3 8h4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span>Sales Report</span>
+</button>
+</li>
+<li>
+<button class="tab-btn flex items-center space-x-2 text-green-600 hover:underline transition-all duration-300" id="tab-inventory" onclick="showReportTab('inventory')">
+<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span>Inventory Report</span>
+</button>
+</li>
+<li>
+<button class="tab-btn flex items-center space-x-2 text-yellow-600 hover:underline transition-all duration-300" id="tab-credit" onclick="showReportTab('credit')">
+<svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24"><path d="M9 17v-6a2 2 0 012-2h2a2 2 0 012 2v6m4 0H5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span>Clients with Credit</span>
+</button>
+</li>
+</ul>
+<!-- Sales Report Tab -->
+<div class="report-tab transition-opacity duration-300" id="report-sales">
+<h3 class="text-lg font-medium">Search Sales</h3>
+<input class="mb-2 w-full p-2 border rounded" id="salesSearch" oninput="filterSalesReport()" placeholder="Search by client name or phone..." type="text"/>
+<table class="w-full border">
+<thead>
+<tr class="bg-gray-200">
+<th class="p-2">Client</th>
+<th class="p-2">Phone</th>
+<th class="p-2">Item</th>
+<th class="p-2">Quantity</th>
+<th class="p-2">Total</th>
+<th class="p-2">Payment</th>
+<th class="p-2">Date</th>
+<th class="p-2">Actions</th>
+</tr>
+</thead>
+<tbody id="salesReportTable"></tbody>
+</table>
+</div>
+<!-- Inventory Report Tab -->
+<div class="report-tab hidden transition-opacity duration-300" id="report-inventory">
+<h3 class="text-lg font-medium">Inventory Report</h3>
+<table class="w-full border" id="inventoryDataTable">
+<thead>
+<tr class="bg-gray-200">
+<th class="p-2">Item Name</th>
+<th class="p-2">Quantity</th>
+<th class="p-2">Buying Price</th>
+<th class="p-2">Selling Price</th>
+<th class="p-2">Quantity in Stock</th><th class="p-2">Quantity Sold</th><th class="p-2">Remaining Quantity</th></tr>
+</thead>
+<tbody id="inventoryReportTable"></tbody>
+</table>
+</div>
+<!-- Clients with Credit Tab -->
+<div class="report-tab hidden transition-opacity duration-300" id="report-credit">
+<h3 class="text-lg font-medium">Clients with Credit</h3>
+<input class="mb-2 w-full p-2 border rounded" id="creditClientSearch" oninput="filterCreditClients()" placeholder="Search clients..." type="text"/>
+<table class="w-full border">
+<thead>
+<tr class="bg-gray-200">
+<th class="p-2">Client Name</th>
+<th class="p-2">Amount Owed</th>
+<th class="p-2">Amount Paid</th>
+<th class="p-2">Actions</th>
+</tr>
+</thead>
+<tbody id="creditClientTable"></tbody>
+</table>
+</div>
+</div>
+<!-- QR Code Generator Section -->
+<div class="section hidden bg-white p-6 rounded-lg shadow-md mb-6" id="qrGenerator">
+<h2 class="text-2xl font-semibold mb-4">Generate QR Codes</h2>
+<form class="space-y-4" id="qrForm">
+<div>
+<label class="block text-sm font-medium">Select Item</label>
+<select class="w-full p-2 border rounded" id="qrItem" required=""></select>
+</div>
+<button class="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600" type="submit">Generate QR Code</button>
+</form>
+<div class="mt-4" id="qrCode"></div>
+<button class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 hidden" id="printQRButton" onclick="printQRCode()">Print QR Code</button>
+</div>
+<!-- Settings Section -->
+<div class="section hidden bg-white p-6 rounded-lg shadow-md mb-6" id="settings">
+<h2 class="text-2xl font-semibold mb-4">Settings</h2>
+<div class="flex space-x-4 mb-6">
+<button class="px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600" onclick="showSettingsSection('profile')">Profile</button>
+<button class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600" onclick="showSettingsSection('users')">Users</button>
+</div>
+<!-- Profile Subsection -->
+<div class="settings-section" id="profile">
+<h3 class="text-lg font-medium mb-4">Profile</h3>
+<div class="flex justify-center mb-4 relative">
+<div class="w-[150px] h-[150px] rounded-full overflow-hidden flex items-center justify-center bg-blue-500">
+<img alt="Profile Avatar" class="w-full h-full object-cover hidden" id="profileAvatarImage" src=""/>
+<span class="text-white font-bold text-4xl" id="profileAvatarInitial"></span>
+</div>
+<input accept="image/*" class="hidden" id="avatarUpload" type="file"/>
+<button class="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700" onclick="document.getElementById('avatarUpload').click()" type="button">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+<form class="space-y-4" id="profileForm">
+<div>
+<label class="block text-sm font-medium">Username</label>
+<input class="w-full p-2 border rounded" id="editUsername" required="" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-medium">Email</label>
+<input class="w-full p-2 border rounded" id="editEmail" required="" type="email"/>
+</div>
+<div>
+<label class="block text-sm font-medium">New Password (leave blank to keep current)</label>
+<input class="w-full p-2 border rounded" id="editPassword" type="password"/>
+</div>
+<div>
+<label class="block text-sm font-medium">Confirm New Password</label>
+<input class="w-full p-2 border rounded" id="editConfirmPassword" type="password"/>
+</div>
+<button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" type="submit">Update Profile</button>
+</form>
+</div>
+<!-- Users Subsection -->
+<div class="settings-section hidden" id="users">
+<h3 class="text-lg font-medium mb-4">Users</h3>
+<div class="flex space-x-4 mb-6">
+<button class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600" onclick="showUsersSection('addUser')">Add User</button>
+<button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onclick="showUsersSection('systemUsers')">System Users</button>
+<button class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600" onclick="showUsersSection('roles')">Roles</button>
+</div>
+<!-- Add User Sub-subsection -->
+<div class="users-section" id="addUser">
+<h4 class="text-md font-medium mb-4">Add User</h4>
+<form class="space-y-4" id="addUserForm">
+<div>
+<label class="block text-sm font-medium">Username</label>
+<input class="w-full p-2 border rounded" id="newUsername" required="" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-medium">Email</label>
+<input class="w-full p-2 border rounded" id="newEmail" required="" type="email"/>
+</div>
+<div>
+<label class="block text-sm font-medium">Password</label>
+<input class="w-full p-2 border rounded" id="newPassword" required="" type="password"/>
+</div>
+<div>
+<label class="block text-sm font-medium">Role</label>
+<select class="w-full p-2 border rounded" id="newRole" required="">
+<option value="admin">Admin</option>
+<option value="sales">Sales</option>
+</select>
+</div>
+<div>
+<label class="block text-sm font-medium">Confirm Password</label>
+<input class="w-full p-2 border rounded" id="newConfirmPassword" required="" type="password"/>
+</div>
+<button class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600" type="submit">Add User</button>
+</form>
+</div>
+<!-- System Users Sub-subsection -->
+<div class="users-section hidden" id="systemUsers">
+<h4 class="text-md font-medium mb-4">System Users</h4>
+<table class="w-full border">
+<thead>
+<tr class="bg-gray-200">
+<th class="p-2">Username</th>
+<th class="p-2">Email</th>
+<th class="p-2">Actions</th>
+</tr>
+</thead>
+<tbody id="systemUsersTable"></tbody>
+</table>
+</div>
+<!-- Roles Sub-subsection -->
+<div class="users-section hidden" id="roles">
+<h4 class="text-md font-medium mb-4">Roles</h4>
+<form class="space-y-4" id="rolesForm">
+<div>
+<label class="block text-sm font-medium">Role Name</label>
+<input class="w-full p-2 border rounded" id="roleName" required="" type="text"/>
+</div>
+<button class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600" type="submit">Add Role</button>
+</form>
+<table class="w-full border mt-4">
+<thead>
+<tr class="bg-gray-200">
+<th class="p-2">Role Name</th>
+<th class="p-2">Actions</th>
+</tr>
+</thead>
+<tbody id="rolesTable"></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+        // Data storage
+        let clients = JSON.parse(localStorage.getItem('clients')) || [];
+        let stock = JSON.parse(localStorage.getItem('stock')) || [];
+        let sales = JSON.parse(localStorage.getItem('sales')) || [];
+        let payments = JSON.parse(localStorage.getItem('payments')) || [];
+        let users = JSON.parse(localStorage.getItem('users')) || [
+            { username: 'admin', password: 'admin123', email: 'admin@example.com', role: 'admin' }
+        ];
+        let roles = JSON.parse(localStorage.getItem('roles')) || [
+            { id: Date.now(), name: 'admin' },
+            { id: Date.now() + 1, name: 'user' }
+        ];
+
+        // Authentication state
+        let isLoggedIn = JSON.parse(localStorage.getItem('isLoggedIn')) || false;
+        let currentUser = null;
+
+        // QR Code Scanner
+        let html5QrCode;
+
+        // Page navigation
+        function showLogin() {
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('forgotPasswordPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            stopScanner();
+            updateLoginAvatar();
+        }
+
+        function toggleDropdown(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+
+        function showForgotPassword() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('forgotPasswordPage').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            stopScanner();
+        }
+
+        function showMainApp() {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('forgotPasswordPage').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            updateDashboard();
+            updateProfileDisplay();
+            updateHeaderAvatar();
+            showSection('dashboard');
+        }
+
+        function logout() {
+            isLoggedIn = false;
+            currentUser = null;
+            localStorage.setItem('isLoggedIn', false);
+            localStorage.removeItem('currentUsername');
+            stopScanner();
+            showLogin();
+        }
+
+        // Update login avatar
+        function updateLoginAvatar() {
+            const username = document.getElementById('username').value;
+            const avatarImage = document.getElementById('loginAvatarImage');
+            const avatarInitial = document.getElementById('loginAvatarInitial');
+            const storedAvatar = localStorage.getItem(`avatar_${username}`);
+
+            if (storedAvatar) {
+                avatarImage.src = storedAvatar;
+                avatarImage.classList.remove('hidden');
+                avatarInitial.classList.add('hidden');
+            } else {
+                avatarImage.classList.add('hidden');
+                avatarInitial.classList.remove('hidden');
+                avatarInitial.textContent = username ? username.charAt(0).toUpperCase() : '?';
+            }
+        }
+
+        // Update profile avatar display
+        function updateProfileAvatar() {
+            if (currentUser) {
+                const avatarImage = document.getElementById('profileAvatarImage');
+                const avatarInitial = document.getElementById('profileAvatarInitial');
+                const storedAvatar = localStorage.getItem(`avatar_${currentUser.username}`);
+
+                if (storedAvatar) {
+                    avatarImage.src = storedAvatar;
+                    avatarImage.classList.remove('hidden');
+                    avatarInitial.classList.add('hidden');
+                } else {
+                    avatarImage.classList.add('hidden');
+                    avatarInitial.classList.remove('hidden');
+                    avatarInitial.textContent = currentUser.username.charAt(0).toUpperCase();
+                }
+            }
+        }
+
+
+
+        function filterCreditClients() {
+            const query = document.getElementById("creditClientSearch").value.toLowerCase();
+            const tbody = document.getElementById("creditClientTable");
+            tbody.innerHTML = '';
+
+             const filtered = clients.filter(c => c.creditOwed > 0 && c.name.toLowerCase().includes(query));
+             filtered.forEach(client => {
+             const paymentsTotal = (payments.filter(p => p.clientId === client.id).reduce((sum, p) => sum + p.amount, 0)).toFixed(2);
+             tbody.innerHTML += `
+             <tr>
+            <td class="p-2">${client.name}</td>
+             <td class="p-2">Ksh${client.creditOwed.toFixed(2)}</td>
+             <td class="p-2">Ksh${paymentsTotal}</td>
+            <td class="p-2">
+            <button class="px-2 py-1 bg-blue-500 text-white rounded" onclick="sendCreditReminder('${client.name}', ${client.creditOwed})">Send Reminder</button>
+            </td>
+            </tr>
+             `;
+             });
+        }
+
+        function sendCreditReminder(name, amount) {
+           alert(`Reminder sent to ${name} for Ksh${amount.toFixed(2)}. [This can be extended to use email/SMS]`);
+        }
+    
+        // Update header avatar display
+        function updateHeaderAvatar() {
+            if (currentUser) {
+                const avatarImage = document.getElementById('headerAvatarImage');
+                const avatarInitial = document.getElementById('headerAvatarInitial');
+                const storedAvatar = localStorage.getItem(`avatar_${currentUser.username}`);
+
+                if (storedAvatar) {
+                    avatarImage.src = storedAvatar;
+                    avatarImage.classList.remove('hidden');
+                    avatarInitial.classList.add('hidden');
+                } else {
+                    avatarImage.classList.add('hidden');
+                    avatarInitial.classList.remove('hidden');
+                    avatarInitial.textContent = currentUser.username.charAt(0).toUpperCase();
+                }
+            }
+        }
+
+        // Handle avatar upload
+        document.getElementById('avatarUpload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    if (currentUser) {
+                        localStorage.setItem(`avatar_${currentUser.username}`, event.target.result);
+                        updateProfileAvatar();
+                        updateHeaderAvatar();
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const user = users.find(u => u.username === username && u.password === password);
+            if (user) {
+                isLoggedIn = true;
+                currentUser = user;
+                localStorage.setItem('isLoggedIn', true);
+                localStorage.setItem('currentUsername', username);
+                document.getElementById('loginForm').reset();
+                showMainApp();
+            } else {
+                alert('Invalid username or password!');
+            }
+        });
+
+        // Update login avatar on username input
+        document.getElementById('username').addEventListener('input', updateLoginAvatar);
+
+        // Forgot password form
+        document.getElementById('forgotPasswordForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('resetEmail').value;
+            const user = users.find(u => u.email === email);
+            if (user) {
+                alert(`Password reset link sent to ${email}. Check your inbox.`);
+                document.getElementById('forgotPasswordForm').reset();
+                showLogin();
+            } else {
+                alert('Email not found!');
+            }
+        });
+
+        // Show section
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => section.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+            if (sectionId === 'pos') {
+                updatePosDropdown();
+                document.getElementById('itemSearch').focus();
+                startScanner();
+            } else {
+                stopScanner();
+            }
+            if (sectionId === 'qrGenerator') {
+                updateQRDropdown();
+            }
+            if (sectionId === 'settings') {
+                showSettingsSection('profile');
+                loadProfileForm();
+                updateProfileAvatar();
+            }
+            if (sectionId === 'addStock') {
+                showStockSection('addStockSub');
+                updateStockDropdown();
+            }
+            if (sectionId === 'viewClients') {
+                updateViewClientsTable();
+            }
+
+        }
+
+        // Show stock subsection
+        function showStockSection(sectionId) {
+            document.querySelectorAll('.stock-section').forEach(section => section.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+            if (sectionId === 'viewStockSub') {
+                updateViewStockTable();
+            }
+
+            if (sectionId === 'adjustStockSub') {
+                updateStockDropdown();
+                toggleAdjustFields(); // Added to initialize field visibility
+            }
+        }
+
+        // Show settings subsection
+        function showSettingsSection(sectionId) {
+            document.querySelectorAll('.settings-section').forEach(section => section.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+            if (sectionId === 'users') {
+                showUsersSection('addUser');
+            }
+        }
+
+        // Show users subsection
+        function showUsersSection(sectionId) {
+            document.querySelectorAll('.users-section').forEach(section => section.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+            if (sectionId === 'systemUsers') {
+                updateSystemUsersTable();
+            }
+            if (sectionId === 'roles') {
+                updateRolesTable();
+            }
+        }
+
+        // Update profile display
+        function updateProfileDisplay() {
+            if (currentUser) {
+                document.getElementById('profileUsername').textContent = currentUser.username;
+                document.getElementById('profileEmail').textContent = currentUser.email;
+                document.getElementById('profileInitial').textContent = currentUser.username.charAt(0).toUpperCase();
+            }
+        }
+
+        // Load profile form
+        function loadProfileForm() {
+            if (currentUser) {
+                document.getElementById('editUsername').value = currentUser.username;
+                document.getElementById('editEmail').value = currentUser.email;
+                document.getElementById('editPassword').value = '';
+                document.getElementById('editConfirmPassword').value = '';
+            }
+        }
+
+        // Update profile
+        document.getElementById('profileForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('editUsername').value;
+            const email = document.getElementById('editEmail').value;
+            const password = document.getElementById('editPassword').value;
+            const confirmPassword = document.getElementById('editConfirmPassword').value;
+
+            if (password && password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+
+            if (users.some(u => u.username === username && u !== currentUser)) {
+                alert('Username already exists!');
+                return;
+            }
+
+            if (users.some(u => u.email === email && u !== currentUser)) {
+                alert('Email already exists!');
+                return;
+            }
+
+            const oldUsername = currentUser.username;
+            currentUser.username = username;
+            currentUser.email = email;
+            if (password) {
+                currentUser.password = password;
+            }
+
+            // Update avatar storage if username changed
+            if (oldUsername !== username) {
+                const storedAvatar = localStorage.getItem(`avatar_${oldUsername}`);
+                if (storedAvatar) {
+                    localStorage.setItem(`avatar_${username}`, storedAvatar);
+                    localStorage.removeItem(`avatar_${oldUsername}`);
+                }
+            }
+
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('currentUsername', username);
+            updateProfileDisplay();
+            updateProfileAvatar();
+            updateHeaderAvatar();
+            alert('Profile updated successfully!');
+        });
+
+        // Add user
+        document.getElementById('addUserForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('newUsername').value;
+            const email = document.getElementById('newEmail').value;
+            const password = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('newConfirmPassword').value;
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+
+            if (users.some(u => u.username === username)) {
+                alert('Username already exists!');
+                return;
+            }
+
+            if (users.some(u => u.email === email)) {
+                alert('Email already exists!');
+                return;
+            }
+
+            users.push({
+                username,
+                email,
+                password,
+                role: document.getElementById('newRole').value
+            });
+            localStorage.setItem('users', JSON.stringify(users));
+            document.getElementById('addUserForm').reset();
+            alert('User added successfully!');
+            updateSystemUsersTable();
+        });
+
+        // Update system users table
+        function updateSystemUsersTable() {
+            let html = '';
+            users.forEach(user => {
+                html += `<tr>
+                    <td class="p-2">${user.username}</td>
+                    <td class="p-2">${user.email}</td>
+                    <td class="p-2">
+                        <select onchange="changeUserRole('${user.username}', this.value)" class="p-1 border rounded">
+                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            <option value="sales" ${user.role === 'sales' ? 'selected' : ''}>Sales</option>
+                        </select>
+                    </td>
+                    <td class="p-2">
+                        <button onclick="deleteUser('${user.username}')" class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('systemUsersTable').innerHTML = html;
+        }
+
+        // Delete user
+        function deleteUser(username) {
+            if (username === currentUser.username) {
+                alert('Cannot delete the current user!');
+                return;
+            }
+            users = users.filter(u => u.username !== username);
+            localStorage.setItem('users', JSON.stringify(users));
+            updateSystemUsersTable();
+            alert('User deleted successfully!');
+        }
+
+        // Add role
+        document.getElementById('rolesForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const roleName = document.getElementById('roleName').value;
+            if (roles.some(r => r.name === roleName)) {
+                alert('Role already exists!');
+                return;
+            }
+            roles.push({
+                id: Date.now(),
+                name: roleName
+            });
+            localStorage.setItem('roles', JSON.stringify(roles));
+            document.getElementById('rolesForm').reset();
+            updateRolesTable();
+            alert('Role added successfully!');
+        });
+
+        // Update roles table
+        function updateRolesTable() {
+            let html = '';
+            roles.forEach(role => {
+                html += `<tr>
+                    <td class="p-2">${role.name}</td>
+                    <td class="p-2">
+                        <button onclick="deleteRole(${role.id})" class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('rolesTable').innerHTML = html;
+        }
+
+        // Delete role
+        function deleteRole(roleId) {
+            if (users.some(u => u.role === roles.find(r => r.id === roleId).name)) {
+                alert('Cannot delete role in use by users!');
+                return;
+            }
+            roles = roles.filter(r => r.id !== roleId);
+            localStorage.setItem('roles', JSON.stringify(roles));
+            updateRolesTable();
+            alert('Role deleted successfully!');
+        }
+
+        // Update dashboard
+    function updateDashboard() {
+        const start = document.getElementById("dashboardStartDate").value;
+        const end = document.getElementById("dashboardEndDate").value;
+        const filteredSales = sales.filter(sale => {
+             if (!sale.date) return false;
+            const saleDate = sale.date.split("T")[0];
+            if (startDate && saleDate < startDate) return false;
+           if (endDate && saleDate > endDate) return false;
+          return true;
+          });
+        const totalCredit = clients.reduce((sum, client) => sum + (client.creditOwed || 0), 0);
+        const totalStockValue = stock.reduce((sum, item) => sum + (item.quantity * item.sellingPrice), 0);
+    // Updated: Calculate total cash sales
+        const totalCashSales = sales
+        .filter(sale => sale.paymentType === 'cash')
+        .reduce((sum, sale) => sum + sale.total, 0);
+
+            document.getElementById('totalCreditOwed').textContent = `Ksh${totalCredit.toFixed(2)}`;
+             document.getElementById('totalClients').textContent = clients.length;
+            document.getElementById('totalStockValue').textContent = `Ksh${totalStockValue.toFixed(2)}`;
+
+            const ctx = document.getElementById('creditStockChart').getContext('2d');
+                new Chart(ctx, {
+                 type: 'bar',
+                 data: {
+                 labels: ['Credit Owed', 'Stock Value', 'Cash Sales'],
+                 datasets: [{
+                 label: 'Ksh Value',
+                 data: [totalCredit, totalStockValue, totalCashSales],
+                 backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                 }]
+                 },
+                 options: {
+                 responsive: true,
+                 plugins: {
+                 legend: { display: false }
+                    },
+                scales: {
+                  y: {
+                  beginAtZero: true
+                     }
+                      }
+                     }
+                     
+            });
+            // Aggregate quantities sold per item
+const itemSalesMap = {};
+sales.forEach(sale => {
+  sale.items.forEach(item => {
+    if (!itemSalesMap[item.name]) {
+      itemSalesMap[item.name] = 0;
+    }
+    itemSalesMap[item.name] += item.quantity;
+  });
+});
+
+// Convert to array and sort
+const topItems = Object.entries(itemSalesMap)
+  .sort((a, b) => b[1] - a[1])
+  .slice(0, 5);
+
+// Update table
+let topItemsHtml = '';
+topItems.forEach(([itemName, qty]) => {
+  topItemsHtml += `
+    <tr>
+      <td class="p-2">${itemName}</td>
+      <td class="p-2">${qty}</td>
+    </tr>
+  `;
+});
+document.getElementById('topSellingItems').innerHTML = topItemsHtml;
+
+
+            const topClients = clients
+             .filter(c => c.creditOwed > 0)
+              .sort((a, b) => b.creditOwed - a.creditOwed)
+             .slice(0, 5);
+         let topClientsHtml = '';
+        topClients.forEach(client => {
+        topClientsHtml += `<tr>
+            <td class="p-2">${client.name}</td>
+            <td class="p-2">Ksh${client.creditOwed.toFixed(2)}</td>
+        </tr>`;
+    });
+    document.getElementById('topCreditClients').innerHTML = topClientsHtml;
+
+    const recentSales = sales
+        .filter(s => s.paymentType === 'credit')
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+        const recentClients = [];
+        const seenClientIds = new Set();
+        for (const sale of recentSales) {
+        if (!seenClientIds.has(sale.clientId) && recentClients.length < 5) {
+            const client = clients.find(c => c.id === sale.clientId);
+            if (client && client.creditOwed > 0) {
+                recentClients.push({ ...client, lastPurchase: sale.date });
+                seenClientIds.add(sale.clientId);
+            }
+             }
+             }
+                let recentClientsHtml = '';
+                recentClients.forEach(client => {
+                 recentClientsHtml += `<tr>
+                     <td class="p-2">${client.name}</td>
+                    <td class="p-2">Ksh${client.creditOwed.toFixed(2)}</td>
+                    <td class="p-2">${client.lastPurchase}</td>
+                      </tr>`;
+             });
+             document.getElementById('recentCreditClients').innerHTML = recentClientsHtml;
+        }
+
+        // Update client dropdowns
+        function updateClientDropdowns() {
+            const posClient = document.getElementById('posClient');
+            const creditClient = document.getElementById('creditClient');
+            posClient.innerHTML = '<option value="">Select Client</option>';
+            creditClient.innerHTML = '<option value="">Select Client</option>';
+            clients.forEach(client => {
+                posClient.innerHTML += `<option value="${client.id}">${client.name}</option>`;
+                creditClient.innerHTML += `<option value="${client.id}">${client.name}</option>`;
+            });
+        }
+
+        // Update POS and stock dropdown
+        function updatePosDropdown() {
+            const posItem = document.getElementById('posItem');
+            posItem.innerHTML = '<option value="">Select Item</option>';
+            stock.forEach(item => {
+                if (item.quantity > 0) {
+                    posItem.innerHTML += `<option value="${item.id}">${item.name} (Ksh${item.sellingPrice.toFixed(2)})</option>`;
+                }
+            });
+        }
+
+        // Update stock dropdown for adjust stock
+        function updateStockDropdown() {
+            const adjustStockItem = document.getElementById('adjustStockItem');
+            adjustStockItem.innerHTML = '<option value="">Select Item</option>';
+            stock.forEach(item => {
+                adjustStockItem.innerHTML += `<option value="${item.id}">${item.name} (Qty: ${item.quantity})</option>`;
+            });
+        }
+
+        // Update view stock table
+        function updateViewStockTable() {
+            let html = '';
+            stock.forEach(item => {
+                html += `<tr>
+                    <td class="p-2">${item.name}</td>
+                    <td class="p-2">${item.quantity}</td>
+                    <td class="p-2">Ksh${item.price.toFixed(2)}</td>
+                    <td class="p-2">Ksh${item.sellingPrice.toFixed(2)}</td>
+                </tr>`;
+            });
+            document.getElementById('viewStockTable').innerHTML = html;
+        }
+
+        // Update QR dropdown
+        function updateQRDropdown() {
+            const qrItem = document.getElementById('qrItem');
+            qrItem.innerHTML = '<option value="">Select Item</option>';
+            stock.forEach(item => {
+                qrItem.innerHTML += `<option value="${item.id}">${item.name} (Ksh${item.sellingPrice.toFixed(2)})</option>`;
+            });
+        }
+
+        // Search items
+        function searchItems(query) {
+            const posItem = document.getElementById('posItem');
+            posItem.innerHTML = '<option value="">Select Item</option>';
+            const filteredItems = stock.filter(item => 
+                item.quantity > 0 && item.name.toLowerCase().includes(query.toLowerCase())
+            );
+            filteredItems.forEach(item => {
+                posItem.innerHTML += `<option value="${item.id}">${item.name} (Ksh${item.sellingPrice.toFixed(2)})</option>`;
+            });
+            posItem.classList.remove('hidden');
+            if (filteredItems.length === 1) {
+                posItem.value = filteredItems[0].id;
+                posItem.classList.add('hidden');
+            }
+        }
+
+        // Start QR scanner
+        function startScanner() {
+            const scannerDiv = document.getElementById('scanner');
+            scannerDiv.classList.remove('hidden');
+            scannerDiv.innerHTML = '<div id="reader" class="w-full max-w-md"></div>';
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    document.getElementById('itemSearch').value = decodedText;
+                    searchItems(decodedText);
+                },
+                (error) => {
+                    console.warn(`QR Code scan error: ${error}`);
+                }
+            ).catch(err => {
+                console.error(`Unable to start QR scanner: ${err}`);
+                alert('Failed to start QR scanner. Please try again.');
+            });
+        }
+
+        // Stop QR scanner
+        function stopScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().catch(err => {
+                    console.error(`Unable to stop QR scanner: ${err}`);
+                });
+                html5QrCode = null;
+                document.getElementById('scanner').innerHTML = '';
+                document.getElementById('scanner').classList.add('hidden');
+            }
+        }
+
+        // Add client
+        document.getElementById('clientForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const client = {
+                id: Date.now(),
+                name: document.getElementById('clientName').value,
+                email: document.getElementById('clientEmail').value,
+                phone: document.getElementById('clientPhone').value,
+                creditLimit: parseFloat(document.getElementById('clientCreditLimit').value) || 0,
+                creditOwed: 0
+            };
+            clients.push(client);
+            localStorage.setItem('clients', JSON.stringify(clients));
+            updateDashboard();
+            updateClientDropdowns();
+            document.getElementById('clientForm').reset();
+            alert('Client added successfully!');
+        });
+
+        // Add stock
+        document.getElementById('stockForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    if (!confirm("You want to add stock?")) return;
+
+    const item = {
+        id: Date.now(),
+        name: document.getElementById('itemName').value,
+        price: parseFloat(document.getElementById('itemPrice').value),
+        sellingPrice: parseFloat(document.getElementById('itemSellingPrice').value),
+        quantity: parseInt(document.getElementById('itemQuantity').value)
+    };
+
+    stock.push(item);
+    localStorage.setItem('stock', JSON.stringify(stock));
+    updateDashboard();
+    updatePosDropdown();
+    updateQRDropdown();
+    updateStockDropdown();
+    updateViewStockTable();
+
+    document.getElementById('stockForm').reset();
+
+    alert('Stock added successfully!');
+
+    // ✅ Redirect to View Stock
+    showStockSection('viewStockSub');
+});
+
+
+
+        // Adjust stock
+        document.getElementById('adjustStockForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    if (!confirm("You are about to adjust stock. Continue?")) return;
+
+    const itemId = parseInt(document.getElementById('adjustStockItem').value);
+    const adjustmentType = document.getElementById('adjustmentType').value;
+    const quantity = parseInt(document.getElementById('adjustQuantity').value);
+    const newBuyingPrice = parseFloat(document.getElementById('adjustBuyingPrice').value);
+    const newSellingPrice = parseFloat(document.getElementById('adjustSellingPrice').value);
+
+    const item = stock.find(i => i.id === itemId);
+
+    if (!item || (adjustmentType !== 'edit' && quantity <= 0)) {
+        alert('Invalid item or quantity!');
+        return;
+    }
+
+    if (adjustmentType === 'edit') {
+        if (!isNaN(newBuyingPrice)) item.price = newBuyingPrice;
+        if (!isNaN(newSellingPrice)) item.sellingPrice = newSellingPrice;
+    } else {
+        if (adjustmentType === 'remove' && item.quantity < quantity) {
+            alert('Cannot remove more than available quantity!');
+            return;
+        }
+        if (adjustmentType === 'add') {
+            item.quantity += quantity;
+        } else {
+            item.quantity -= quantity;
+        }
+    }
+
+    localStorage.setItem('stock', JSON.stringify(stock));
+    updateDashboard();
+    updatePosDropdown();
+    updateQRDropdown();
+    updateStockDropdown();
+    updateViewStockTable();
+
+    document.getElementById('adjustStockForm').reset();
+    toggleAdjustFields();
+
+    alert('Stock adjusted successfully!');
+
+    // ✅ Redirect to View Stock
+    showStockSection('viewStockSub');
+});
+
+
+
+        // Process sale
+        document.getElementById('posForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const clientId = parseInt(document.getElementById('posClient').value);
+            const itemId = parseInt(document.getElementById('posItem').value);
+            const quantity = parseInt(document.getElementById('posQuantity').value);
+            const paymentType = document.getElementById('paymentType').value;
+
+            const client = clients.find(c => c.id === clientId);
+            const item = stock.find(i => i.id === itemId);
+
+            if (!item || item.quantity < quantity) {
+                alert('Insufficient stock or invalid item!');
+                return;
+            }
+
+            const total = item.sellingPrice * quantity;
+
+            if (total <= 0) {
+                alert('Invalid sale amount!');
+                return;
+            }
+
+            if (paymentType === 'credit') {
+                if (client.creditLimit > 0 && client.creditOwed + total > client.creditLimit) {
+                    alert('Credit limit exceeded!');
+                    return;
+                }
+                client.creditOwed = (client.creditOwed || 0) + total;
+            }
+
+            item.quantity -= quantity;
+            const sale = {
+                id: Date.now(),
+                clientId,
+                clientName: client.name,
+                itemId,
+                itemName: item.name,
+                quantity,
+                total,
+                paymentType,
+                date: new Date().toLocaleString()
+            };
+            sales.push(sale);
+            localStorage.setItem('clients', JSON.stringify(clients));
+            localStorage.setItem('stock', JSON.stringify(stock));
+            localStorage.setItem('sales', JSON.stringify(sales));
+            updateDashboard();
+            updatePosDropdown();
+            updateStockDropdown();
+            updateViewStockTable();
+            document.getElementById('posForm').reset();
+            alert('Sale processed successfully!');
+        });
+
+        // Item search
+        document.getElementById('itemSearch').addEventListener('input', (e) => {
+            searchItems(e.target.value);
+        });
+
+        // Load client credit details
+        function loadClientCreditDetails() {
+            const clientId = parseInt(document.getElementById('creditClient').value);
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                document.getElementById('clientCreditOwed').textContent = 'Ksh0.00';
+                document.getElementById('creditItemsTable').innerHTML = '';
+                document.getElementById('paymentHistoryTable').innerHTML = '';
+                return;
+            }
+
+            document.getElementById('clientCreditOwed').textContent = `Ksh${client.creditOwed.toFixed(2)}`;
+
+            const creditSales = sales.filter(s => s.clientId === clientId && s.paymentType === 'credit');
+            let html = '';
+            creditSales.forEach(sale => {
+                html += `<tr>
+                    <td class="p-2">${sale.itemName}</td>
+                    <td class="p-2">${sale.quantity}</td>
+                    <td class="p-2">Ksh${(sale.total / sale.quantity).toFixed(2)}</td>
+                    <td class="p-2">Ksh${sale.total.toFixed(2)}</td>
+                    <td class="p-2">${sale.date}</td>
+                </tr>`;
+            });
+            document.getElementById('creditItemsTable').innerHTML = html;
+
+            const clientPayments = payments.filter(p => p.clientId === clientId);
+            html = '';
+            clientPayments.forEach(payment => {
+                html += `<tr>
+                    <td class="p-2">Ksh${payment.amount.toFixed(2)}</td>
+                    <td class="p-2">${payment.date}</td>
+                </tr>`;
+            });
+            document.getElementById('paymentHistoryTable').innerHTML = html;
+        }
+
+        // Record payment
+        document.getElementById('paymentForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const clientId = parseInt(document.getElementById('creditClient').value);
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const client = clients.find(c => c.id === clientId);
+
+            if (!client || amount <= 0) {
+                alert('Invalid payment amount or client not selected!');
+                return;
+            }
+
+            if (amount > client.creditOwed) {
+                alert('Payment amount exceeds credit owed!');
+                return;
+            }
+
+            client.creditOwed -= amount;
+            const payment = {
+                id: Date.now(),
+                clientId,
+                amount,
+                date: new Date().toLocaleString()
+            };
+            payments.push(payment);
+            localStorage.setItem('clients', JSON.stringify(clients));
+            localStorage.setItem('payments', JSON.stringify(payments));
+            updateDashboard();
+            loadClientCreditDetails();
+            document.getElementById('paymentForm').reset();
+            alert('Payment recorded successfully!');
+        });
+
+        // Send credit items notification
+        function sendCreditItemsNotification() {
+            const clientId = parseInt(document.getElementById('creditClient').value);
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                alert('Please select a client!');
+                return;
+            }
+
+            const creditSales = sales.filter(s => s.clientId === clientId && s.paymentType === 'credit');
+            if (creditSales.length === 0) {
+                alert('No credit items to send!');
+                return;
+            }
+
+            let message = `Dear ${client.name},\n\nBelow is the list of items you took on credit:\n\n`;
+            creditSales.forEach(sale => {
+                message += `- ${sale.itemName}: ${sale.quantity} x Ksh${(sale.total / sale.quantity).toFixed(2)} = Ksh${sale.total.toFixed(2)} (${sale.date})\n`;
+            });
+            message += `\nTotal Credit Owed: Ksh${client.creditOwed.toFixed(2)}\n\nThank you,\nPOS System`;
+
+            console.log('Sending notification to:', client.email || client.phone);
+            console.log('Message:', message);
+            alert(`Notification sent to ${client.email || client.phone}! Check console for message details.`);
+        }
+
+        // Generate reports
+        function generateReports() {
+            let salesHtml = '';
+            sales.forEach(sale => {
+                salesHtml += `<tr>
+                    <td class="p-2">${sale.clientName}</td>
+                    <td class="p-2">${sale.itemName}</td>
+                    <td class="p-2">${sale.quantity}</td>
+                    <td class="p-2">Ksh${sale.total.toFixed(2)}</td>
+                    <td class="p-2">${sale.paymentType}</td>
+                    <td class="p-2">${sale.date}</td>
+                </tr>`;
+            });
+            document.getElementById('salesReportTable').innerHTML = salesHtml;
+
+            let inventoryHtml = '';
+            stock.forEach(item => {
+                inventoryHtml += `<tr>
+                    <td class="p-2">${item.name}</td>
+                    <td class="p-2">${item.quantity}</td>
+                    <td class="p-2">Ksh${item.price.toFixed(2)}</td>
+                    <td class="p-2">Ksh${item.sellingPrice.toFixed(2)}</td>
+                </tr>`;
+            });
+            document.getElementById('inventoryReportTable').innerHTML = inventoryHtml;
+        }
+
+        // Generate QR code
+        document.getElementById('qrForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const itemId = parseInt(document.getElementById('qrItem').value);
+            const item = stock.find(i => i.id === itemId);
+            if (!item) {
+                alert('Please select an item!');
+                return;
+            }
+
+            const qrCodeDiv = document.getElementById('qrCode');
+            qrCodeDiv.innerHTML = '';
+            const canvas = document.createElement('canvas');
+            qrCodeDiv.appendChild(canvas);
+            jsQR.encode(
+                item.name,
+                {
+                    width: 200,
+                    height: 200,
+                    canvas: canvas
+                }
+            );
+
+            const label = document.createElement('p');
+            label.textContent = `${item.name} - Ksh${item.sellingPrice.toFixed(2)}`;
+            label.className = 'text-center mt-2';
+            qrCodeDiv.appendChild(label);
+
+            document.getElementById('printQRButton').classList.remove('hidden');
+        });
+
+        
+        function changeUserRole(username, newRole) {
+            const user = users.find(u => u.username === username);
+            if (user) {
+                user.role = newRole;
+                localStorage.setItem('users', JSON.stringify(users));
+                alert(`Role updated to ${newRole} for ${username}`);
+            }
+        }
+
+        // Print QR code
+        function printQRCode() {
+  const selectedItemId = document.getElementById("qrItem").value;
+  const item = stock.find(i => i.id == selectedItemId);
+  if (!item) return alert("Invalid item selected!");
+
+  const count = item.quantity;
+  const qrData = `${item.name} - Ksh${item.sellingPrice.toFixed(2)}`;
+  const container = document.createElement("div");
+
+  // Style container to match A4 and 2x1.5 inch layout
+  container.innerHTML = `
+    <style>
+      @media print {
+        body {
+          margin: 0;
+        }
+      }
+      .print-container {
+        display: flex;
+        flex-wrap: wrap;
+        width: 210mm;
+        padding: 10mm;
+        box-sizing: border-box;
+      }
+      .qr-label {
+        width: 2in;
+        height: 1.5in;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px dashed #ccc;
+        margin: 0;
+        box-sizing: border-box;
+        page-break-inside: avoid;
+      }
+      .qr-label img {
+        width: 1.25in;
+        height: 1.25in;
+      }
+      .qr-label span {
+        font-size: 10px;
+        text-align: center;
+      }
+    </style>
+    <div class="print-container" id="qrPrintGrid"></div>
+  `;
+
+  const grid = container.querySelector("#qrPrintGrid");
+
+  for (let i = 0; i < count; i++) {
+    const qr = new QRious({
+      value: qrData,
+      size: 120,
+    });
+
+    const label = document.createElement("div");
+    label.className = "qr-label";
+    label.innerHTML = `<img src="${qr.toDataURL()}" /><span>${qrData}</span>`;
+    grid.appendChild(label);
+  }
+
+  const printWindow = window.open('', '', 'width=800,height=1000');
+  printWindow.document.write(container.innerHTML);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+  printWindow.close();
+}
+
+
+        function updateViewClientsTable() {
+             const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
+             let html = '';
+             clients
+            .filter(client =>
+              client.name.toLowerCase().includes(searchTerm) ||
+             (client.email || '').toLowerCase().includes(searchTerm) ||
+             (client.phone || '').toLowerCase().includes(searchTerm)
+             )
+            .forEach(client => {
+                html += `<tr>
+                <td class="p-2">${client.name}</td>
+                <td class="p-2">${client.email}</td>
+                <td class="p-2">${client.phone}</td>
+                <td class="p-2">Ksh${client.creditLimit.toFixed(2)}</td>
+                <td class="p-2">Ksh${client.creditOwed.toFixed(2)}</td>
+                <td class="p-2 space-x-2">
+                    <button onclick="editClient(${client.id})" class="px-2 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500">Edit</button>
+                    <button onclick="deleteClient(${client.id})" class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+                    <button onclick="sendReminder(${client.id})" class="block w-full px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-400">Reminder</button>
+                  </td>
+                 </tr>`;
+              });
+            document.getElementById('viewClientsTable').innerHTML = html;
+        }
+
+        function editClient(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            const name = prompt("Edit name:", client.name);
+            const email = prompt("Edit email:", client.email);
+            const phone = prompt("Edit phone number:", client.phone);
+            const creditLimit = prompt("Edit credit limit (Ksh):", client.creditLimit);
+
+            if (name !== null && email !== null && phone !== null && creditLimit !== null) {
+             client.name = name;
+             client.email = email;
+             client.phone = phone;
+             client.creditLimit = parseFloat(creditLimit) || 0;
+             localStorage.setItem('clients', JSON.stringify(clients));
+             updateViewClientsTable();
+            updateClientDropdowns();
+             updateDashboard();
+            alert("Client updated successfully!");
+             }
+        }
+
+        function deleteClient(clientId) {
+              if (!confirm("Are you sure you want to delete this client?")) return;
+                clients = clients.filter(c => c.id !== clientId);
+                 localStorage.setItem('clients', JSON.stringify(clients));
+                 updateViewClientsTable();
+                 updateClientDropdowns();
+                updateDashboard();
+                alert("Client deleted successfully!");
+        }
+
+        function sendReminder(clientId) {
+                const client = clients.find(c => c.id === clientId);
+                if (!client) return;
+                const message = `Hi ${client.name}, you owe Ksh${client.creditOwed.toFixed(2)}. Please settle your balance at your earliest convenience. - POS System`;
+
+                 if (client.email) {
+                    fetch('send_email.php', {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `to=${encodeURIComponent(client.email)}&message=${encodeURIComponent(message)}`
+                 })
+                     .then(res => res.text())
+                     .then(data => {
+                      if (data === 'success') alert('Email sent!');
+                      else alert(`Email failed: ${data}`);
+                });
+                     }
+
+                 if (client.phone) {
+                     fetch('send_sms.php', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `to=${encodeURIComponent(client.phone)}&message=${encodeURIComponent(message)}`
+                     })
+                         .then(res => res.text())
+                        .then(data => {
+                            if (data === 'success') alert('SMS sent!');
+                              else alert(`SMS failed: ${data}`);
+                         });
+                     }
+        }
+
+
+
+
+
+        // Initialize
+        if (isLoggedIn && localStorage.getItem('currentUsername')) {
+            currentUser = users.find(u => u.username === localStorage.getItem('currentUsername'));
+            if (currentUser) {
+                showMainApp();
+            } else {
+                showLogin();
+            }
+        } else {
+            showLogin();
+        }
+        updateClientDropdowns();
+        updatePosDropdown();
+        updateQRDropdown();
+        generateReports();
+    
+function updateInventoryReportTable() {
+  const tbody = document.getElementById("inventoryReportTable");
+  tbody.innerHTML = "";
+
+  const itemSalesMap = {};
+  sales.forEach(sale => {
+    sale.items.forEach(item => {
+      if (!itemSalesMap[item.id]) {
+        itemSalesMap[item.id] = 0;
+      }
+      itemSalesMap[item.id] += item.quantity;
+    });
+  });
+
+  stock.forEach(item => {
+    const soldQty = itemSalesMap[item.id] || 0;
+    const currentQty = item.quantity;
+    tbody.innerHTML += `
+      <tr>
+        <td class="p-2">${item.name}</td>
+        <td class="p-2">${currentQty}</td>
+        <td class="p-2">${soldQty}</td>
+        <td class="p-2">${currentQty - soldQty}</td>
+      </tr>
+    `;
+  });
+}</script>
+<script>
+let selectedPaymentType = "";
+
+function openPaymentPopup(type) {
+    selectedPaymentType = type;
+    const total = parseFloat(document.getElementById("totalPayable").textContent) || 0;
+    document.getElementById("popupAmount").textContent = `Ksh ${total.toFixed(2)}`;
+    document.getElementById("discountInput").value = "";
+    document.getElementById("paymentPopup").classList.remove("hidden");
+}
+// Ensure openPaymentPopup() sets the correct amount
+function openPaymentPopup(method) {
+  updateCartSummary();
+  document.getElementById("paymentPopup").classList.remove("hidden");
+}
+function closePaymentPopup() {
+    document.getElementById("paymentPopup").classList.add("hidden");
+}
+
+// Receipt printing logic with proper header, item list, total, and thank you note
+function confirmPayment() {
+  const totalText = document.getElementById("totalPayable").textContent;
+  const cartBody = document.getElementById("cartTableBody");
+  const items = Array.from(cartBody.rows).map(row => {
+    const name = row.cells[0].textContent;
+    const qty = row.cells[1].textContent;
+    const price = row.cells[2].textContent;
+    const subtotal = row.cells[3].textContent;
+
+
+// Add after confirmPayment() function
+function confirmPayment() {
+  const discount = parseFloat(document.getElementById("discountInput").value) || 0;
+  const shipping = parseFloat(document.getElementById("shippingCost").value) || 0;
+  const cartBody = document.getElementById("cartTableBody");
+  const rows = Array.from(cartBody.rows);
+
+  if (rows.length === 0) {
+    alert("Cart is empty!");
+    return;
+  }
+
+  let total = 0;
+  const cartItems = rows.map(row => {
+    const itemId = parseInt(row.dataset.itemId);
+    const qty = parseInt(row.querySelector(".cart-qty").textContent);
+    const item = stock.find(i => i.id === itemId);
+    const subtotal = item.sellingPrice * qty;
+    total += subtotal;
+    return { id: item.id, name: item.name, price: item.sellingPrice, quantity: qty, subtotal };
+  });
+
+  total += shipping;
+  total -= discount;
+  const paymentType = document.querySelector("#paymentPopup button.bg-green-600").textContent.trim();
+  const client = clients.find(c => c.id === currentClientId);
+
+  const now = new Date().toISOString();
+
+  cartItems.forEach(item => {
+    sales.push({
+      clientId: currentClientId,
+      clientName: client ? client.name : 'Walk-in',
+      item: item.name,
+      quantity: item.quantity,
+      total: item.subtotal,
+      paymentType: paymentType.toLowerCase(),
+      date: now
+    });
+
+    const stockItem = stock.find(i => i.id === item.id);
+    if (stockItem) {
+      stockItem.quantity -= item.quantity;
+    }
+
+    if (paymentType.toLowerCase() === 'credit' && client) {
+      client.creditOwed = (client.creditOwed || 0) + item.subtotal;
+      if (!client.creditItems) client.creditItems = [];
+      client.creditItems.push({
+        itemName: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        total: item.subtotal,
+        date: now
+      });
+    }
+  });
+
+  localStorage.setItem('sales', JSON.stringify(sales));
+  localStorage.setItem('stock', JSON.stringify(stock));
+  localStorage.setItem('clients', JSON.stringify(clients));
+  updateDashboard();
+  updateViewClientsTable();
+  updateClientDropdowns();
+  document.getElementById("cartTableBody").innerHTML = "";
+  updateCartSummary();
+  closePaymentPopup();
+  alert("Sale recorded successfully!");
+}
+
+
+    return `<tr><td colspan='4'><strong>${name}</strong></td></tr>
+<tr><td>Qty</td><td>${qty}</td><td>Price</td><td>${price}</td></tr>
+<tr><td colspan='4'>Subtotal: ${subtotal}</td></tr>`;
+  }).join("");
+
+  const receiptHTML = `
+    <html><head><style>
+    body { font-family: 'Courier New', Courier, monospace; font-size: 12px; width: 80mm; padding: 10px; }
+    .header { text-align: center; font-size: 14px; font-weight: bold; }
+    .logo { width: 50px; height: auto; margin-bottom: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    td { padding: 2px 0; }
+    .footer { margin-top: 10px; text-align: center; font-size: 12px; }
+    </style></head><body>
+    <div class='header'>
+      <img src='https://via.placeholder.com/80x50?text=Logo' class='logo' alt='Logo'><br>
+      EDUH COMPUTERS<br>Address: Uhuru Plaza<br>Phone: 0702610894 / 0701538642<br>
+      ${new Date().toLocaleString()}
+    </div>
+    <table>${items}</table>
+    <div class='footer'><strong>Total Payable: ${totalText}</strong><br><br>Thank you for your purchase!</div>
+    </body></html>`;
+
+  const win = window.open('', '', 'width=300,height=700');
+  win.document.write(receiptHTML);
+  win.print();
+  win.close();
+  closePaymentPopup();
+}
+      //Report- Sales Report-Inventory Report-Client with Credit
+    function showReportTab(tab) {
+        document.querySelectorAll('.report-tab').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('font-bold'));
+        const tabEl = document.getElementById(`report-${tab}`);
+        const tabBtn = document.getElementById(`tab-${tab}`);
+        tabEl.classList.remove('hidden');
+        tabBtn.classList.add('font-bold');
+        tabEl.classList.add('animate-fadeIn');
+        if (tab === 'inventory') updateInventoryReportTable();
+        setTimeout(() => tabEl.classList.remove('animate-fadeIn'), 300);
+    }
+
+    function filterSalesReport() {
+         const query = document.getElementById('salesSearch').value.toLowerCase();
+        const tbody = document.getElementById('salesReportTable');
+        tbody.innerHTML = '';
+        const filteredSales = sales.filter(sale => {
+        const client = clients.find(c => c.id === sale.clientId);
+         return client && (client.name.toLowerCase().includes(query) || (client.phone && client.phone.includes(query)));
+        });
+    filteredSales.forEach(sale => {
+      const client = clients.find(c => c.id === sale.clientId);
+      tbody.innerHTML += `<tr>
+      <td class="p-2">${client.name}</td>
+      <td class="p-2">${client.phone || ''}</td>
+      <td class="p-2">${sale.item}</td>
+      <td class="p-2">${sale.quantity}</td>
+      <td class="p-2">Ksh${sale.total.toFixed(2)}</td>
+      <td class="p-2">${sale.paymentType}</td>
+      <td class="p-2">${sale.date}</td>
+      <td class="p-2">
+        <button onclick="printReceipt(${sale.id})" class="px-2 py-1 bg-indigo-500 text-white rounded">Print</button>
+      </td>
+    </tr>`;
+     });
+    }
+
+
+    function renderReceipt(items, total, paymentType) {
+    const date = new Date();
+    document.getElementById('receiptDate').textContent = date.toLocaleDateString();
+    document.getElementById('receiptTime').textContent = date.toLocaleTimeString();
+
+    const tbody = document.getElementById('receiptItems');
+    tbody.innerHTML = '';
+    items.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.name}</td>
+        <td class="text-center">${item.qty}</td>
+        <td class="text-right">Ksh${item.rate.toFixed(2)}</td>
+        <td class="text-right">Ksh${(item.qty * item.rate).toFixed(2)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('receiptTotal').textContent = `Ksh${total.toFixed(2)}`;
+    document.getElementById('receiptPaymentType').textContent = paymentType;
+
+    const qrText = `Eduh Computers\n123 Tech Street, Nairobi\nPhone: +254 712 345678\nDate: ${date.toLocaleDateString()} ${date.toLocaleTimeString()}\nItems:\n` +
+      items.map(i => `${i.name} x${i.qty} @ Ksh${i.rate.toFixed(2)} = Ksh${(i.qty * i.rate).toFixed(2)}`).join('\n') +
+      `\nTotal: Ksh${total.toFixed(2)}\nPayment: ${paymentType}`;
+
+    document.getElementById('receiptQR').innerHTML = '';
+    new QRCode(document.getElementById('receiptQR'), {
+      text: qrText,
+      width: 100,
+      height: 100
+    });
+  }
+  
+</script>
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+</style>.
+
+
+
+
+<script>
+$(document).ready(function() {
+  $('#inventoryDataTable').DataTable({
+    dom: 'Bfrtip',
+    buttons: ['print', 'pdf']
+  });
+});
+</script><script>
+function updateInventoryReportTable() {
+  const tbody = document.getElementById("inventoryReportTable");
+  tbody.innerHTML = "";
+
+  stock.forEach(item => {
+    const itemSales = sales.reduce((total, sale) => {
+      const matchingItem = sale.items.find(i => i.name === item.name);
+      return matchingItem ? total + matchingItem.quantity : total;
+    }, 0);
+
+    const remainingQuantity = item.quantity - itemSales;
+
+    tbody.innerHTML += `
+      <tr>
+        <td class="p-2">${item.name}</td>
+        <td class="p-2">${item.quantity}</td>
+        <td class="p-2">Ksh${item.buyingPrice.toFixed(2)}</td>
+        <td class="p-2">Ksh${item.sellingPrice.toFixed(2)}</td>
+        <td class="p-2">${item.quantity}</td>
+        <td class="p-2">${itemSales}</td>
+        <td class="p-2">${remainingQuantity}</td>
+      </tr>
+    `;
+  });
+}
+</script><script>
+function updateInventoryReportTable() {
+  const tbody = document.getElementById("inventoryReportTable");
+  tbody.innerHTML = "";
+
+  stock.forEach(item => {
+    const itemSales = sales.reduce((total, sale) => {
+      const matchingItem = sale.items.find(i => i.name === item.name);
+      return matchingItem ? total + matchingItem.quantity : total;
+    }, 0);
+
+    const remainingQuantity = item.quantity - itemSales;
+
+    tbody.innerHTML += `
+      <tr>
+        <td class="p-2">${item.name}</td>
+        <td class="p-2">${item.quantity}</td>
+        <td class="p-2">Ksh${item.buyingPrice.toFixed(2)}</td>
+        <td class="p-2">Ksh${item.sellingPrice.toFixed(2)}</td>
+        <td class="p-2">${item.quantity}</td>
+        <td class="p-2">${itemSales}</td>
+        <td class="p-2">${remainingQuantity}</td>
+      </tr>
+    `;
+  });
+}
+</script></body>
+</html>
